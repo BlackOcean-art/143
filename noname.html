@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Catch me if you can</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+            -webkit-user-select: none; /* Mencegah text selection di Android */
+            user-select: none;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(135deg, #ffd6ec, #dff4ff);
+            height: 100vh;
+        }
+
+        #game {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #scoreBox {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, .1);
+        }
+
+        #player {
+            position: absolute;
+            bottom: 120px; /* Dinaikkan sedikit agar tidak tertutup tombol mobile */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 50px;
+            transition: left 0.05s linear;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 35px;
+            animation: fall linear forwards;
+        }
+
+        .cloud {
+            position: absolute;
+            font-size: 40px;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            from {
+                transform: translateY(-100px);
+            }
+            to {
+                transform: translateY(120vh);
+            }
+        }
+
+        #winScreen {
+            display: none;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ffe1f1, #dff4ff);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 100;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #slideImg {
+            width: 280px;
+            height: 380px;
+            object-fit: cover;
+            border-radius: 25px;
+            border: 8px solid white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
+        }
+
+        #slideText {
+            margin-top: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #ff4f8b;
+            max-width: 600px;
+        }
+
+        .fade {
+            animation: fade .8s;
+        }
+
+        @keyframes fade {
+            from { opacity: 0; transform: scale(.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        #finalMessage {
+            display: none;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #fff0f8, #e7f7ff);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 200;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        #finalMessage h1 {
+            color: #ff5a9d;
+            font-size: 32px;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+
+        #finalMessage p {
+            background: rgba(255, 255, 255, .9);
+            max-width: 850px;
+            width: 90%;
+            padding: 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            line-height: 1.8;
+            text-align: left;
+            color: #555;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            overflow-y: auto;
+            max-height: 65vh;
+        }
+
+        .flower {
+            position: absolute;
+            font-size: 30px;
+            animation: flowerFall linear infinite;
+        }
+
+        @keyframes flowerFall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+            }
+            100% {
+                transform: translateY(120vh) rotate(360deg);
+            }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: confettiFall 4s linear forwards;
+        }
+
+        @keyframes confettiFall {
+            from {
+                transform: translateY(-50px);
+            }
+            to {
+                transform: translateY(110vh);
+            }
+        }
+
+        #mobileControls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 20;
+        }
+
+        .btn {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: none;
+            font-size: 30px;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, .15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: manipulation;
+        }
+
+        @media (min-width: 768px) {
+            #mobileControls {
+                display: none;
+            }
+            #player {
+                bottom: 20px;
+            }
+            #finalMessage h1 {
+                font-size: 42px;
+            }
+            #finalMessage p {
+                font-size: 20px;
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <audio id="music" src="lany - you! (official video).mp3" preload="auto"></audio>
+
+    <div id="game">
+        <div id="scoreBox">
+            💖 Hati: <span id="score">0</span>/20
+        </div>
+
+        <div id="player">🐰</div>
+
+        <div id="mobileControls">
+            <button class="btn" id="leftBtn">⬅️</button>
+            <button class="btn" id="rightBtn">➡️</button>
+        </div>
+    </div>
+
+    <div id="winScreen">
+        <h1 style="color:#ff5a9d; margin-bottom: 20px; font-size: 24px; padding: 0 10px;">
+            Hi Neng Cantik, Good Job!
+        </h1>
+        <img id="slideImg" src="foto1.jpg">
+        <div id="slideText"></div>
+    </div>
+
+    <div id="finalMessage">
+        <h1>For You, Almayis Jiesha</h1>
+        <p>
+            Hai neng Alma 🤍<br><br>
+            Aa tau kemarin aa udah bikin hari neng jadi nggak seindah biasanya.
+            Aa juga sadar mungkin ada kata-kata dan sikap aa yang bikin neng kecewa dan sedih.
+            Untuk itu, aa minta maaf ya neng.<br><br>
+            Yang paling bikin aa sedih bukan karena kita lagi nggak baik-baik aja,
+            tapi karena aa jadi alasan neng yang aa sayang merasa kecewa.
+            Jujur, aa nggak suka lihat neng sedih, apalagi kalau penyebabnya aa sendiri. <br><br>
+            Kalau sekarang neng masih marah, aa ngerti.
+            Kalau neng masih sedih, aa juga ngerti.
+            Aa nggak mau maksa neng buat langsung baikan atau langsung maafin aa.
+            Aa cuma pengen neng tau kalau perasaan aa ke neng nggak berubah sedikit pun.<br><br>
+            Sampai sekarang, aa tetap milih neng,
+            tetap sayang neng,
+            dan tetap pengen jalanin hari-hari sama neng.<br><br>
+            Karena buat aa,
+            neng itu berharga banget,
+            lebih dari yang mungkin pernah aa ungkapin.<br><br>
+            Jangan lama-lama sedihnya ya neng.
+            Istirahat yang cukup,
+            makan yang teratur,
+            dan jangan lupa senyum cantiknya. <br><br>
+            Aa kangen neng.<br>
+            Aa sayang neng. 🤍
+        </p>
+    </div>
+
+    <script>
+        const player = document.getElementById("player");
+        const game = document.getElementById("game");
+        const audio = document.getElementById("music");
+
+        let playerX = window.innerWidth / 2;
+        let score = 0;
+        let finished = false;
+        let moveInterval = null;
+        let audioUnlocked = false;
+
+        function movePlayer() {
+            // Memastikan kelinci tidak keluar dari batas kanan kiri layar
+            const playerWidth = player.offsetWidth || 50;
+            playerX = Math.max(playerWidth / 2, Math.min(window.innerWidth - (playerWidth / 2), playerX));
+            player.style.left = playerX + "px";
+        }
+
+        // Jalankan fungsi awal untuk memosisikan player di tengah
+        movePlayer();
+        window.addEventListener('resize', movePlayer);
+
+        // Membuka blokir audio untuk kebijakan Android Browser (Chrome/Safari)
+        function unlockAudio() {
+            if (!audioUnlocked) {
+                audio.play().then(() => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    audioUnlocked = true;
+                }).catch(e => console.log("Audio unlock failed:", e));
+            }
+        }
+
+        // Kontrol Keyboard (Desktop)
+        document.addEventListener("keydown", (e) => {
+            unlockAudio();
+            if (e.key === "ArrowLeft") playerX -= 30;
+            if (e.key === "ArrowRight") playerX += 30;
+            movePlayer();
+        });
+
+        // Kontrol Sentuh Android (Hold to Move berkelanjutan)
+        const leftBtn = document.getElementById("leftBtn");
+        const rightBtn = document.getElementById("rightBtn");
+
+        function startMoving(direction) {
+            unlockAudio();
+            if (moveInterval) clearInterval(moveInterval);
+            moveInterval = setInterval(() => {
+                if (direction === "left") playerX -= 15;
+                if (direction === "right") playerX += 15;
+                movePlayer();
+            }, 20);
+        }
+
+        function stopMoving() {
+            clearInterval(moveInterval);
+        }
+
+        leftBtn.addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("left"); });
+        leftBtn.addEventListener("touchend", stopMoving);
+        rightBtn.addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("right"); });
+        rightBtn.addEventListener("touchend", stopMoving);
+
+        // Cadangan klik biasa untuk mobile/emulator
+        leftBtn.onmousedown = () => startMoving("left");
+        leftBtn.onmouseup = stopMoving;
+        rightBtn.onmousedown = () => startMoving("right");
+        rightBtn.onmouseup = stopMoving;
+
+        function createHeart() {
+            if (finished) return;
+
+            const heart = document.createElement("div");
+            heart.className = "heart";
+            heart.innerHTML = "💖";
+
+            const x = Math.random() * (window.innerWidth - 40) + 20;
+            heart.style.left = x + "px";
+            heart.style.animationDuration = (3 + Math.random() * 2) + "s";
+
+            game.appendChild(heart);
+
+            const check = setInterval(() => {
+                const hr = heart.getBoundingClientRect();
+                const pr = player.getBoundingClientRect();
+
+                if (
+                    hr.left < pr.right &&
+                    hr.right > pr.left &&
+                    hr.top < pr.bottom &&
+                    hr.bottom > pr.top
+                ) {
+                    score++;
+                    document.getElementById("score").textContent = score;
+                    heart.remove();
+                    createConfetti();
+
+                    if (score >= 20) {
+                        winGame();
+                    }
+                    clearInterval(check);
+                }
+            }, 30);
+
+            setTimeout(() => {
+                heart.remove();
+                clearInterval(check);
+            }, 6000);
+        }
+
+        function createCloud() {
+            if (finished) return;
+
+            const cloud = document.createElement("div");
+            cloud.className = "cloud";
+            cloud.innerHTML = "☁️";
+
+            const x = Math.random() * (window.innerWidth - 40) + 20;
+            cloud.style.left = x + "px";
+            cloud.style.animationDuration = (4 + Math.random() * 2) + "s";
+
+            game.appendChild(cloud);
+
+            const check = setInterval(() => {
+                const cr = cloud.getBoundingClientRect();
+                const pr = player.getBoundingClientRect();
+
+                if (
+                    cr.left < pr.right &&
+                    cr.right > pr.left &&
+                    cr.top < pr.bottom &&
+                    cr.bottom > pr.top
+                ) {
+                    score = Math.max(0, score - 2);
+                    document.getElementById("score").textContent = score;
+                    cloud.remove();
+                    clearInterval(check);
+                }
+            }, 30);
+
+            setTimeout(() => {
+                cloud.remove();
+                clearInterval(check);
+            }, 7000);
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 12; i++) {
+                const c = document.createElement("div");
+                c.className = "confetti";
+                c.style.left = Math.random() * window.innerWidth + "px";
+                c.style.background = ["#ff77b7", "#87ceff", "#ffd700", "#98fb98"][Math.floor(Math.random() * 4)];
+
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 4000);
+            }
+        }
+
+        setInterval(createHeart, 700);
+        setInterval(createCloud, 3000);
+
+        function winGame() {
+            finished = true;
+            stopMoving();
+            
+            audio.play().catch(e => {
+                // Skenario darurat jika browser mobile masih memblokir audio otomatis
+                document.addEventListener('touchstart', () => { audio.play(); }, { once: true });
+            });
+
+            setTimeout(() => {
+                document.getElementById("game").style.display = "none";
+                startSlideShow();
+            }, 1000);
+        }
+
+        const photos = ["foto1.jpg", "foto2.jpg", "foto3.jpg", "foto4.jpg", "foto5.jpg"];
+        const texts = [
+            "Hi neng, gimana harinya?",
+            "Semoga hari neng selalu menyenangkan ya",
+            "Jangan sedih sedih lagi ya, neng lebih cantik kalo senyum",
+            "Aa harap neng selalu bahagia, ntah gimana pun keadaannya nanti ",
+            "Aa sayang banget sama neng and i miss you so much"
+        ];
+        
+        let current = 0;
+
+        function startSlideShow() {
+            document.getElementById("winScreen").style.display = "flex";
+            showSlide();
+        }
+
+        function showSlide() {
+            const img = document.getElementById("slideImg");
+            const text = document.getElementById("slideText");
+
+            img.src = photos[current];
+            text.textContent = texts[current];
+
+            img.classList.add("fade");
+            text.classList.add("fade");
+
+            setTimeout(() => {
+                img.classList.remove("fade");
+                text.classList.remove("fade");
+            }, 700);
+
+            current++;
+
+            if (current < photos.length) {
+                setTimeout(showSlide, 4000);
+            } else {
+                setTimeout(showFinal, 5000);
+            }
+        }
+
+        function showFinal() {
+            document.getElementById("winScreen").style.display = "none";
+            const final = document.getElementById("finalMessage");
+            final.style.display = "flex";
+
+            for (let i = 0; i < 40; i++) {
+                const flower = document.createElement("div");
+                flower.className = "flower";
+                flower.innerHTML = ["🌸", "🌷", "🌺", "💮"][Math.floor(Math.random() * 4)];
+                flower.style.left = Math.random() * 100 + "%";
+                flower.style.animationDuration = (5 + Math.random() * 5) + "s";
+                flower.style.delay = (Math.random() * 3) + "s";
+                final.appendChild(flower);
+            }
+        }
+    </script>
+</body>
+</html>
