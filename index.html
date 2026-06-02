@@ -83,6 +83,15 @@
             padding: 20px;
         }
 
+        #slideContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+
         #slideImg {
             width: 280px;
             height: 380px;
@@ -98,15 +107,6 @@
             font-weight: bold;
             color: #ff4f8b;
             max-width: 600px;
-        }
-
-        .fade {
-            animation: fade .8s;
-        }
-
-        @keyframes fade {
-            from { opacity: 0; transform: scale(.9); }
-            to { opacity: 1; transform: scale(1); }
         }
 
         #finalMessage {
@@ -237,11 +237,13 @@
     </div>
 
     <div id="winScreen">
-        <h1 style="color:#ff5a9d; margin-bottom: 20px; font-size: 24px; padding: 0 10px;">
+        <h1 id="winTitle" style="color:#ff5a9d; margin-bottom: 20px; font-size: 24px; padding: 0 10px; transition: opacity 0.4s;">
             Hi Neng Cantik, Good Job!
         </h1>
-        <img id="slideImg" src="foto1.jpg">
-        <div id="slideText"></div>
+        <div id="slideContainer">
+            <img id="slideImg" src="foto1.jpg">
+            <div id="slideText"></div>
+        </div>
     </div>
 
     <div id="finalMessage">
@@ -293,7 +295,7 @@
             "Aa sayang banget sama neng and i miss you so much"
         ];
 
-        // Mekanisme Pre-loading Gambar di latar belakang agar tidak macet/balapan di internet
+        // Mekanisme Pre-loading Gambar penuh agar siap di internet
         const preloadedImages = [];
         function preloadPhotos() {
             for (let i = 0; i < photos.length; i++) {
@@ -463,35 +465,41 @@
         }
         
         let current = 0;
+        const container = document.getElementById("slideContainer");
+        const img = document.getElementById("slideImg");
+        const text = document.getElementById("slideText");
+        const winTitle = document.getElementById("winTitle");
 
         function startSlideShow() {
             document.getElementById("winScreen").style.display = "flex";
-            showSlide();
+            executeSlide();
         }
 
-        function showSlide() {
+        function executeSlide() {
             if (current >= photos.length) {
-                setTimeout(showFinal, 4000);
+                // Sembunyikan judul juga saat masuk ke pesan final
+                winTitle.style.opacity = "0";
+                container.style.opacity = "0";
+                setTimeout(showFinal, 500);
                 return;
             }
 
-            const img = document.getElementById("slideImg");
-            const text = document.getElementById("slideText");
-
-            // Animasi transisi masuk
-            img.classList.add("fade");
-            text.classList.add("fade");
-
+            // Langkah 1: Ubah isi konten saat container sedang tidak terlihat / transparan
             img.src = photos[current];
             text.textContent = texts[current];
 
-            setTimeout(() => {
-                img.classList.remove("fade");
-                text.classList.remove("fade");
-            }, 700);
+            // Langkah 2: Munculkan kontainer (Fade In)
+            container.style.opacity = "1";
 
-            current++;
-            setTimeout(showSlide, 4500); // Dijeda aman 4.5 detik per slide foto
+            // Langkah 3: Tunggu selama 4 detik untuk membiarkan Alma membaca teks & melihat foto
+            setTimeout(() => {
+                // Langkah 4: Hilangkan kontainer secara perlahan (Fade Out) sebelum ganti data
+                container.style.opacity = "0";
+                
+                // Langkah 5: Masuk ke data foto selanjutnya setelah animasi hilangnya selesai (400ms)
+                current++;
+                setTimeout(executeSlide, 400);
+            }, 4000);
         }
 
         function showFinal() {
