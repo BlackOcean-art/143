@@ -284,18 +284,34 @@
         let moveInterval = null;
         let audioUnlocked = false;
 
+        const photos = ["foto1.jpg", "foto2.jpg", "foto3.jpg", "foto4.jpg", "foto5.jpg"];
+        const texts = [
+            "Hi neng, gimana harinya?",
+            "Semoga hari neng selalu menyenangkan ya",
+            "Jangan sedih sedih lagi ya, neng lebih cantik kalo senyum",
+            "Aa harap neng selalu bahagia, ntah gimana pun keadaannya nanti ",
+            "Aa sayang banget sama neng and i miss you so much"
+        ];
+
+        // Mekanisme Pre-loading Gambar di latar belakang agar tidak macet/balapan di internet
+        const preloadedImages = [];
+        function preloadPhotos() {
+            for (let i = 0; i < photos.length; i++) {
+                preloadedImages[i] = new Image();
+                preloadedImages[i].src = photos[i];
+            }
+        }
+        preloadPhotos();
+
         function movePlayer() {
-            // Memastikan kelinci tidak keluar dari batas kanan kiri layar
             const playerWidth = player.offsetWidth || 50;
             playerX = Math.max(playerWidth / 2, Math.min(window.innerWidth - (playerWidth / 2), playerX));
             player.style.left = playerX + "px";
         }
 
-        // Jalankan fungsi awal untuk memosisikan player di tengah
         movePlayer();
         window.addEventListener('resize', movePlayer);
 
-        // Membuka blokir audio untuk kebijakan Android Browser (Chrome/Safari)
         function unlockAudio() {
             if (!audioUnlocked) {
                 audio.play().then(() => {
@@ -306,7 +322,6 @@
             }
         }
 
-        // Kontrol Keyboard (Desktop)
         document.addEventListener("keydown", (e) => {
             unlockAudio();
             if (e.key === "ArrowLeft") playerX -= 30;
@@ -314,7 +329,6 @@
             movePlayer();
         });
 
-        // Kontrol Sentuh Android (Hold to Move berkelanjutan)
         const leftBtn = document.getElementById("leftBtn");
         const rightBtn = document.getElementById("rightBtn");
 
@@ -337,7 +351,6 @@
         rightBtn.addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("right"); });
         rightBtn.addEventListener("touchend", stopMoving);
 
-        // Cadangan klik biasa untuk mobile/emulator
         leftBtn.onmousedown = () => startMoving("left");
         leftBtn.onmouseup = stopMoving;
         rightBtn.onmousedown = () => startMoving("right");
@@ -440,7 +453,6 @@
             stopMoving();
             
             audio.play().catch(e => {
-                // Skenario darurat jika browser mobile masih memblokir audio otomatis
                 document.addEventListener('touchstart', () => { audio.play(); }, { once: true });
             });
 
@@ -449,15 +461,6 @@
                 startSlideShow();
             }, 1000);
         }
-
-        const photos = ["foto1.jpg", "foto2.jpg", "foto3.jpg", "foto4.jpg", "foto5.jpg"];
-        const texts = [
-            "Hi neng, gimana harinya?",
-            "Semoga hari neng selalu menyenangkan ya",
-            "Jangan sedih sedih lagi ya, neng lebih cantik kalo senyum",
-            "Aa harap neng selalu bahagia, ntah gimana pun keadaannya nanti ",
-            "Aa sayang banget sama neng and i miss you so much"
-        ];
         
         let current = 0;
 
@@ -467,14 +470,20 @@
         }
 
         function showSlide() {
+            if (current >= photos.length) {
+                setTimeout(showFinal, 4000);
+                return;
+            }
+
             const img = document.getElementById("slideImg");
             const text = document.getElementById("slideText");
 
-            img.src = photos[current];
-            text.textContent = texts[current];
-
+            // Animasi transisi masuk
             img.classList.add("fade");
             text.classList.add("fade");
+
+            img.src = photos[current];
+            text.textContent = texts[current];
 
             setTimeout(() => {
                 img.classList.remove("fade");
@@ -482,12 +491,7 @@
             }, 700);
 
             current++;
-
-            if (current < photos.length) {
-                setTimeout(showSlide, 4000);
-            } else {
-                setTimeout(showFinal, 5000);
-            }
+            setTimeout(showSlide, 4500); // Dijeda aman 4.5 detik per slide foto
         }
 
         function showFinal() {
